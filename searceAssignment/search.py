@@ -135,28 +135,21 @@ class Node:
 # ______________________________________________________________________________
 # Uninformed Search algorithms
 
-def graph_search(problem, FIFOQ):
-    print(FIFOQ)
-    FIFOQ.append(Node(problem.initial))
-    while FIFOQ:
-        node = FIFOQ.pop()
-        if problem.goal_test(node.state):
-            return node
-        FIFOQ.extend(node.expand(problem))
-    return None
-
 def breadth_first_graph_search(problem):
     """[Figure 3.11]
     Note that this function can be implemented in a
     single line as below:
     return graph_search(problem, FIFOQueue())
     """
-    node = Node(problem.initial)  # FIFO queue
-    if problem.goal_test(node.state):
-        return node, None
-    print("breadth_first_graph_search: to be done by students")
-
-    return graph_search(problem, node)
+    frontier = deque([Node(problem.initial)])  # FIFO queue
+    explored = []
+    while frontier:
+        node = frontier.popleft()
+        if problem.goal_test(node.state):
+            return node, explored
+        explored.append(node.state)
+        frontier.extend(node.expand(problem))
+    return None, explored
 
 
 def depth_first_graph_search(problem):
@@ -168,11 +161,15 @@ def depth_first_graph_search(problem):
     Does not get trapped by loops.
     If two paths reach a state, only use the first one.
     """
-    node = Node(problem.initial)  # FIFO queue
-    if problem.goal_test(node.state):
-        return node, None
-    print("depth_first_graph_search: to be done by students")
-    return None, None
+    frontier = [Node(problem.initial)]  # FIFO queue// ? stack
+    explored = set()
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node, explored
+        explored.add(node.state)
+        frontier.extend(node.expand(problem))
+    return None, explored
 
 
 def best_first_graph_search(problem, f=None):

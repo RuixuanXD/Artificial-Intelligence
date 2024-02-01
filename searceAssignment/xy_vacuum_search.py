@@ -119,20 +119,32 @@ class VacuumPlanning(Problem):
         """To be used for UCS and A* search. Returns the cost of a solution path that arrives at state2 from
         state1 via action, assuming it costs c to get up to state1. For our problem state is (x, y) coordinate pair. 
         Rotation of the Vacuum machine costs equivalent of 0.5 unit for each 90' rotation. """
-        print("path_cost: to be done by students")
+        # print("path_cost: to be done by students")
+        turnCost = self.computeTurnCost(self.agent.direction, action)
+        if state1 != state2:
+            totalCost = curNode.path_cost + turnCost + 1
         
-        return curNode.path_cost
+        return totalCost
 
     def computeTurnCost(self, action1, action):
-        print("computeTurnCost: to be done by students")
-        return 0
+        # print("computeTurnCost: to be done by students")
+        cost = 0
+        if (action1 == 'UP' and action == 'DOWN') or (action1 == 'DOWN' and action == 'UP') or (action1 == 'LEFT' and action == 'RIGHT') or (action1 == 'RIGHT' and action == 'LEFT'):
+            cost = 1
+        elif action1 == action:
+            cost = 0
+        else:
+            cost = 0.5
+        return cost
 
     def findMinManhattanDist(self, pos):
         """find the min distance between position pos and any of the dirty rooms. Dirty rooms are maintained in
         self.env.dirtyRooms."""
-        print("findMinManhattanDist: to be done by students. For now we return the distance to first dirty room.")
-        room = self.env.dirtyRooms[0]
-        return distance(pos, room)
+        # print("findMinManhattanDist: to be done by students. For now we return the distance to first dirty room.")
+        distanceList = []
+        for room in self.env.dirtyRooms:
+            distanceList.append(distance(pos, room))
+        return min(distanceList)
         
     def h(self, node):
         """ Return the heuristic value for a given state. For this problem use minimum Manhattan 
