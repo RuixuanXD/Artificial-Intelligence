@@ -143,12 +143,18 @@ def breadth_first_graph_search(problem):
     """
     frontier = deque([Node(problem.initial)])  # FIFO queue
     explored = []
+
     while frontier:
         node = frontier.popleft()
         if problem.goal_test(node.state):
             return node, explored
         explored.append(node.state)
-        frontier.extend(node.expand(problem))
+        for child in node.expand(problem):  # Expand the current node
+            if child.state not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child, explored
+                frontier.extend(node.expand(problem))
+    
     return None, explored
 
 
@@ -161,14 +167,20 @@ def depth_first_graph_search(problem):
     Does not get trapped by loops.
     If two paths reach a state, only use the first one.
     """
-    frontier = [Node(problem.initial)]  # FIFO queue// ? stack
-    explored = set()
+    frontier = [Node(problem.initial)]  # FIFO queue
+    explored = []
+
     while frontier:
         node = frontier.pop()
         if problem.goal_test(node.state):
             return node, explored
-        explored.add(node.state)
-        frontier.extend(node.expand(problem))
+        explored.append(node.state)
+        for child in node.expand(problem):  # Expand the current node
+            if child.state not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child, explored
+                frontier.extend(node.expand(problem))
+
     return None, explored
 
 
@@ -182,8 +194,26 @@ def best_first_graph_search(problem, f=None):
     a best first search you can examine the f values of the path returned."""
     f = memoize(f or problem.h, 'f')
     node = Node(problem.initial)
-    print("best_first_graph_search: to be done by students")
-    return None, None
+    frontier = PriorityQueue('min', f)
+    frontier.append(node)
+    explored = []
+
+    while frontier:
+        node = frontier.pop()
+        if problem.goal_test(node.state):
+            return node, explored
+        explored.append(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child, explored
+                frontier.append(child)
+            elif child in frontier:
+                if f(child) < frontier[child]:
+                    del frontier[child]
+                    frontier.append(child)
+
+    return None, explored
 
 
 def uniform_cost_search(problem):
