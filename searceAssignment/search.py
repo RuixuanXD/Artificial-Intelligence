@@ -149,7 +149,7 @@ def breadth_first_graph_search(problem):
         if problem.goal_test(node.state):
             return node, explored
         explored.append(node.state)
-        for child in node.expand(problem):  # Expand the current node
+        for child in node.expand(problem):
             if child.state not in explored and child not in frontier:
                 if problem.goal_test(child.state):
                     return child, explored
@@ -167,7 +167,7 @@ def depth_first_graph_search(problem):
     Does not get trapped by loops.
     If two paths reach a state, only use the first one.
     """
-    frontier = [Node(problem.initial)]  # FIFO queue
+    frontier = [Node(problem.initial)]  # FIFO queue// ? stack
     explored = []
 
     while frontier:
@@ -175,7 +175,7 @@ def depth_first_graph_search(problem):
         if problem.goal_test(node.state):
             return node, explored
         explored.append(node.state)
-        for child in node.expand(problem):  # Expand the current node
+        for child in node.expand(problem):
             if child.state not in explored and child not in frontier:
                 if problem.goal_test(child.state):
                     return child, explored
