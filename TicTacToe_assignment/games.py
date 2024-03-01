@@ -57,12 +57,39 @@ def minmax(game, state):
     return max(game.actions(state), key=lambda a: min_value(game.result(state, a)))
 
 
-def minmax_cutoff(game, state):
+def minmax_cutoff(game, state, depth=4, eval_fn=None):
     """Given a state in a game, calculate the best move by searching
     forward all the way to the cutoff depth. At that level use evaluation func."""
 
-    print("minmax_cutoff: to be done by studens")
-    return None
+    # print("minmax_cutoff: to be done by students")
+    player = game.to_move(state)
+
+    def cutoff_test(state, depth):
+        return depth == 0 or game.terminal_test(state)
+
+    def eval_function(state):
+        return eval_fn(state) if eval_fn else game.utility(state, player)
+
+    def max_value(state, depth):
+        if cutoff_test(state, depth):
+            return eval_function(state)
+        v = -np.inf
+        for a in game.actions(state):
+            v = max(v, min_value(game.result(state, a), depth - 1))
+        return v
+
+    def min_value(state, depth):
+        if cutoff_test(state, depth):
+            return eval_function(state)
+        v = np.inf
+        for a in game.actions(state):
+            v = min(v, max_value(game.result(state, a), depth - 1))
+        return v
+
+    # Body of minmax_cutoff:
+    action = max(game.actions(state), key=lambda a: min_value(game.result(state, a), depth - 1))
+    return action
+    # return None
 
 # ______________________________________________________________________________
 
@@ -88,15 +115,28 @@ def expect_minmax(game, state):
         return v
 
     def chance_node(state, action):
+        # res_state = game.result(state, action)
+        # if game.terminal_test(res_state):
+        #     return game.utility(res_state, player)
+        # sum_chances = 0
+        # num_chances = len(game.chances(res_state))
+        # print("chance_node: to be completed by students")
         res_state = game.result(state, action)
         if game.terminal_test(res_state):
             return game.utility(res_state, player)
+        outcomes = game.chances(res_state)
         sum_chances = 0
-        num_chances = len(game.chances(res_state))
-        print("chance_node: to be completed by students")
-        return 0 
 
-    # Body of expect_minmax:
+        for outcome in outcomes:
+            next_state = game.result(res_state, outcome)
+            if game.to_move(res_state) == player:
+                sum_chances += max_value(next_state)
+            else:
+                sum_chances += min_value(next_state)
+
+        avg_value = sum_chances / len(outcomes) if outcomes else 0
+        return avg_value
+    
     return max(game.actions(state), key=lambda a: chance_node(state, a), default=None)
 
 
@@ -111,28 +151,87 @@ def alpha_beta_search(game, state):
         if game.terminal_test(state):
             return game.utility(state, player)
         v = -np.inf
-        print("alpha_beta_search: max_value: to be completed by student")
+        # print("alpha_beta_search: max_value: to be completed by student")
+
+        for a in game.actions(state):
+            v = max(v, min_value(game.result(state, a), alpha, beta))
+            if v >= beta:
+                return v  # Pruning
+            alpha = max(alpha, v)
         return v
 
     def min_value(state, alpha, beta):
         if game.terminal_test(state):
             return game.utility(state, player)
         v = np.inf
-        print("alpha_beta_search: min_value: to be completed by student")
+        # print("alpha_beta_search: min_value: to be completed by student")
+
+        for a in game.actions(state):
+            v = min(v, max_value(game.result(state, a), alpha, beta))
+            if v <= alpha:
+                return v  # Pruning
+            beta = min(beta, v)
         return v
 
     # Body of alpha_beta_search:
+    # print("alpha_beta_search: to be completed by students")
+
+    best_score = -np.inf
+    beta = np.inf
     best_action = None
-    print("alpha_beta_search: to be completed by students")
+    for a in game.actions(state):
+        v = min_value(game.result(state, a), best_score, beta)
+        if v > best_score:
+            best_score = v
+            best_action = a
     return best_action
+
 
 
 def alpha_beta_cutoff_search(game, state, d=4, cutoff_test=None, eval_fn=None):
     """Search game to determine best action; use alpha-beta pruning.
     This version cuts off search and uses an evaluation function."""
-    print("alpha_beta_cutoff_search: may be used, if so, must be implemented by students")
-    
-    return None
+    # print("alpha_beta_cutoff_search: may be used, if so, must be implemented by students")
+    player = game.to_move(state)
+
+    def max_value(state, alpha, beta, depth):
+        if cutoff_test(state, depth):
+            return eval_fn(state)
+        v = -np.inf
+        for a in game.actions(state):
+            v = max(v, min_value(game.result(state, a), alpha, beta, depth + 1))
+            if v >= beta:
+                return v  # Pruning
+            alpha = max(alpha, v)
+        return v
+
+    def min_value(state, alpha, beta, depth):
+        if cutoff_test(state, depth):
+            return eval_fn(state)
+        v = np.inf
+        for a in game.actions(state):
+            v = min(v, max_value(game.result(state, a), alpha, beta, depth + 1))
+            if v <= alpha:
+                return v  # Pruning
+            beta = min(beta, v)
+        return v
+
+    if not cutoff_test:
+        cutoff_test = lambda state, depth: depth >= d or game.terminal_test(state)
+
+    if not eval_fn:
+        eval_fn = lambda state: game.utility(state, player)
+
+    best_score = -np.inf
+    beta = np.inf
+    best_action = None
+    for a in game.actions(state):
+        v = min_value(game.result(state, a), best_score, beta, 1)
+        if v > best_score:
+            best_score = v
+            best_action = a
+    return best_action
+
 
 
 # ______________________________________________________________________________
