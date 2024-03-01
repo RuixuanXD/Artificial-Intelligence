@@ -383,15 +383,51 @@ class TicTacToe(Game):
             return self.k if player == 'X' else -self.k
         else:
             return 0
+        
+    def check_line(self, board, move, player, dx, dy):
+        """Check a line in the direction (dx, dy) for potential wins."""
+        x, y = move
+        count = 0
+        
+        while board.get((x, y)) == player or board.get((x, y)) is None:
+            count += 1
+            if count == self.k:
+                return 1
+            x, y = x + dx, y + dy
 
+        x, y = move
+        count = 0
+        while board.get((x, y)) == player or board.get((x, y)) is None:
+            count += 1
+            if count == self.k:
+                return 1
+            x, y = x - dx, y - dy
+
+        return 0
+    
     def evaluation_func(self, state):
         """computes value for a player on board after move.
             Likely it is better to conside the board's state from 
             the point of view of both 'X' and 'O' players and then subtract
             the corresponding values before returning."""
                 
-        print("evaluation_function: to be completed by students")
-        pass
+        #print("evaluation_function: to be completed by students")
+
+        player = state.to_move
+        opponent = 'O' if player == 'X' else 'X'
+        player_score = 0
+        opponent_score = 0
+
+        for move in state.moves:
+            for dx, dy in [(0, 1), (1, 0), (1, 1), (1, -1)]:
+                player_line = self.check_line(state.board, move, player, dx, dy)
+                opponent_line = self.check_line(state.board, move, opponent, dx, dy)
+                
+                player_score += player_line
+                opponent_score += opponent_line
+
+        return player_score - opponent_score
+
 		
     def k_in_row(self, board, move, player, delta_x_y):
         """Return true if there is a line through move on board for player.
